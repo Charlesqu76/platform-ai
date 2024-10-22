@@ -9,6 +9,18 @@ const app = express();
 app.use(express.json());
 const port = 3002;
 
+app.use((req, res, next) => {
+  console.info(
+    "Time:",
+    Date.now().toLocaleString(),
+    "url: ",
+    req.url,
+    "body: ",
+    req.body
+  );
+  next();
+});
+
 app.get("/", (req, res) => {
   res.send("Hello, TypeScript Express with Webpack!");
 });

@@ -1,52 +1,11 @@
 import { HumanMessage, SystemMessage } from "@langchain/core/messages";
 import AI from "./ai";
-import client from "../database";
-import { PoolClient } from "pg";
 import { PromptTemplate } from "@langchain/core/prompts";
 import { StructuredOutputParser } from "@langchain/core/output_parsers";
+import { createReactAgent } from "@langchain/langgraph/prebuilt";
+import { TavilySearchResults } from "@langchain/community/tools/tavily_search";
 import { z } from "zod";
-
-const getHistorySalesByDay = async (c: PoolClient) => {
-  const data = await c.query(`
-    SELECT date, COUNT(date)
-      FROM (
-
-      SELECT TO_CHAR(time, 'YYYY-MM-DD') AS date 
-      FROM product AS p
-      INNER JOIN purchase AS pur ON (p.id = pur.product)
-      WHERE p.retailer = 1
-      )
-      GROUP BY date
-
-`);
-  return data.rows;
-};
-
-const getData = async (c: PoolClient) => {
-  const res = await c.query(
-    `
-SELECT c.name, time, pur.price, geo, device , gender 
-	FROM purchase pur
-	JOIN customer c ON (c.id = pur.customer)
-	JOIN product p ON (p.id = pur.product)
-	WHERE retailer = 1 AND time >= NOW() - INTERVAL '3 month'
-  `
-  );
-  return res.rows;
-};
-
-const getViewData = async (c: PoolClient) => {
-  const res = await c.query(
-    `
-   	    SELECT c.name, time, geo, device , gender 
-	FROM view AS v
-	JOIN customer c ON (c.id = v.customer)
-	JOIN product p ON (p.id = v.product)
-	WHERE retailer = 1 AND time >= NOW() - INTERVAL '3 month'
-  `
-  );
-  return res.rows;
-};
+import { sql } from "../sql";
 
 class RetailerAi extends AI {
   constructor() {
@@ -56,23 +15,20 @@ class RetailerAi extends AI {
     }
   }
 
-  prodictSales = async () => {
-    const c = await client.connect();
-    const data = await getHistorySalesByDay(c);
+  prodictSales = async (id) => {
+    const data = await sql.getHistorySalesByDay(id);
 
     const prompt = PromptTemplate.fromTemplate(`
-         Given the historical sales data, predict the sales for the next 14 days. 
+         Given the historical sales data, predict the sales for all the products for the next 14 days. 
         format template: {format},
         historial sales data: {data}
       `);
 
     const parser = StructuredOutputParser.fromZodSchema(
-      z.array(
-        z.object({
-          date: z.string(),
-          value: z.number(),
-        })
-      )
+      z.object({
+        name: z.string(),
+        predicts: z.array(z.object({ date: z.string(), value: z.number() })),
+      })
     );
 
     const chain = prompt.pipe(this.model).pipe(parser);
@@ -85,11 +41,11 @@ class RetailerAi extends AI {
     return response;
   };
 
-  generate = async () => {
-    const c = await client.connect();
-    const d = await getData(c);
-    const [buy, view] = await Promise.all([getData(c), getViewData(c)]);
-
+  generate = async (id) => {
+    const [buy, view] = await Promise.all([
+      sql.getData(id),
+      sql.getViewData(id),
+    ]);
     const systemJson = {
       dataset: {
         fields: [
@@ -134,26 +90,45 @@ class RetailerAi extends AI {
 
     const messages = [new SystemMessage(system), new HumanMessage(user)];
     const res = await this.model.invoke(messages);
-
-    // const analyzeUserBehaviorTool = {
-    //   name: "analyzeUserBehavior",
-    //   description: "Analyzes user behavior and generates insights using OpenAI",
-    //   func: async (user) => {
-    //     const prompt = `
-    //     Given the following user data:
-    //     - Views: ${JSON.stringify(user.views)}
-    //     - Purchases: ${JSON.stringify(user.purchases)}
-
-    //     Please generate insights such as:
-    //     - Most frequently viewed product categories
-    //     - Most frequently purchased product categories
-    //     - Device preference for viewing products
-    //     - User engagement level (high, moderate, low) based on views and purchases.
-    //     `;
-    //     return this.model.invoke([new SystemMessage(prompt)]);
-    //   },
-    // };
     return { data: res };
+  };
+
+  aisearch = async (name) => {
+    const searchTool = new TavilySearchResults({
+      maxResults: 2,
+      // ...
+    });
+    const tools = [searchTool];
+
+    const parser = StructuredOutputParser.fromZodSchema(
+      z.object({
+        price: z.number(),
+        description: z.string(),
+        reason: z.string(),
+        references: z.array(z.string()),
+      })
+    );
+
+    const agent = createReactAgent({ llm: this.model, tools });
+
+    const agentFinalState = await agent.invoke({
+      messages: `you are an analyiist and hired by a product retailer, 
+        and will search the product name on the internet such as e-bay, amazon, and other ecommerce-platform, 
+        format template: ${parser.getFormatInstructions()}
+        product name: ${name} ,
+        `,
+    });
+
+    const cnt =
+      agentFinalState.messages[agentFinalState.messages.length - 1].content;
+
+    if (cnt.startsWith("```json")) {
+      try {
+        const c = cnt.replace("json", "").replace("```", "").replace("```", "");
+        return JSON.parse(c);
+      } catch (e) {}
+    }
+    return { content: cnt };
   };
 }
 

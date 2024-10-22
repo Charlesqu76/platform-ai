@@ -1,16 +1,16 @@
-import { OpenAI } from "@langchain/openai";
+import { ChatOpenAI, OpenAI } from "@langchain/openai";
 import dotenv from "dotenv";
 
 dotenv.config();
 
 export default class AI {
-  model: OpenAI | undefined;
+  model: ChatOpenAI | undefined;
   constructor() {
     if (!process.env.OPENAI_API_KEY) {
       throw Error("openai api key is required");
     }
-    const model = new OpenAI({
-      model: "gpt-3.5-turbo-0125",
+    const model = new ChatOpenAI({
+      model: "gpt-3.5-turbo",
       temperature: 0,
       openAIApiKey: process.env.OPENAI_API_KEY,
     });
