@@ -1,0 +1,44 @@
+{
+  "name": "platform-ai",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "node dist/server.js",
+    "build": "webpack",
+    "dev": "webpack --watch"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@langchain/community": "^0.3.7",
+    "@langchain/core": "^0.3.13",
+    "@langchain/langgraph": "^0.2.16",
+    "@langchain/openai": "^0.3.11",
+    "@types/pg": "^8.11.10",
+    "dotenv": "^16.4.5",
+    "duck-duck-scrape": "^2.2.5",
+    "express": "^4.21.1",
+    "ignore-webpack-plugin": "^0.3.0",
+    "io": "^1.5.3",
+    "langchain": "^0.3.2",
+    "openai": "^4.68.1",
+    "pg": "^8.13.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.7.7",
+    "nodemon": "^3.1.7",
+    "nodemon-webpack-plugin": "^4.8.2",
+    "ts-loader": "^9.5.1",
+    "ts-node": "^10.9.2",
+    "tsup": "^8.3.0",
+    "typescript": "^5.6.3",
+    "webpack": "^5.95.0",
+    "webpack-cli": "^5.1.4",
+    "webpack-dev-middleware": "^7.4.2",
+    "webpack-node-externals": "^3.0.0"
+  }
+}
