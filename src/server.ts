@@ -25,7 +25,7 @@ app.get("/", (req, res) => {
   res.send("Hello, TypeScript Express with Webpack!");
 });
 
-app.use(retailer, productsRouter);
+app.use("/ai", retailer, productsRouter);
 
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);

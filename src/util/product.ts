@@ -31,16 +31,13 @@ export class ProductAI extends AI {
   }
 
   recommend = async (query: string | null, userId: number | null) => {
-    const c = await client.connect();
     let res;
     if (userId) {
       res = await Promise.all([sql.queryProducts(), sql.queryUserRecord()]);
     } else {
       res = await Promise.all([sql.queryProducts()]);
     }
-
     const [products, preferences] = res;
-
     const productMap = products.reduce((acc, cur) => {
       acc[cur["id"]] = cur;
       return acc;
