@@ -1,5 +1,5 @@
 # Step 1: Use the official Node.js image as the base image
-FROM node:18
+FROM node:20-alpine
 
 # Step 2: Set the working directory inside the container
 WORKDIR /usr/src/app
@@ -17,4 +17,5 @@ COPY . .
 EXPOSE 3002
 
 # Step 7: Define the command to run your app
+CMD ["npm", 'build']
 CMD ["npm", "start"]
