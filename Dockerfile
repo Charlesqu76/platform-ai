@@ -1,21 +1,52 @@
-# Step 1: Use the official Node.js image as the base image
-FROM node:20-alpine
+# Build stage
+FROM node:20-slim AS builder
 
-# Step 2: Set the working directory inside the container
+# Create app directory
 WORKDIR /usr/src/app
 
-# Step 3: Copy the package.json and package-lock.json to the working directory
+# Copy package files
 COPY package*.json ./
 
-# Step 4: Install dependencies
-RUN npm install --production
+# Install all dependencies (including devDependencies)
+RUN npm ci
 
-# Step 5: Copy the rest of the application code to the container
+# Copy source code
 COPY . .
 
-# Step 6: Expose the port your app will run on
+# Build the application
+RUN npm run build
+
+# Production stage
+FROM node:20-slim AS production
+
+# Create app directory
+WORKDIR /usr/src/app
+
+# Copy package files
+COPY package*.json ./
+
+# Install only production dependencies
+RUN npm ci --only=production
+
+# Copy built assets from builder stage
+COPY --from=builder /usr/src/app/dist ./dist
+
+# Create a non-root user
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 expressjs
+
+# Set ownership of the application files
+RUN chown -R expressjs:nodejs .
+
+# Switch to non-root user
+USER expressjs
+
+# Set production environment
+ENV NODE_ENV production
+ENV PORT 3002
+
+# Expose the port
 EXPOSE 3002
 
-# Step 7: Define the command to run your app
-CMD ["npm", 'build']
-CMD ["npm", "start"]
+# Start the application
+CMD [ "node", "dist/server.js" ]
