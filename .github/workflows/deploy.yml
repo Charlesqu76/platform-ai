@@ -12,7 +12,6 @@ jobs:
     steps: # 自动化步骤
       - name: Checkout
         uses: actions/checkout@master
-
       - name: Upload files to deploy server
         uses: appleboy/scp-action@master
         with:
@@ -21,9 +20,8 @@ jobs:
           key: ${{ secrets.KEY }}
           port: ${{ secrets.SERVER_PORT }}
           source: "./*" # 你要上传的文件或目录
-          target: "/home/ubuntu/platform-ai/" # 目标目录
+          target: "/home/ubuntu/platform/" # 目标目录
           rm: true
-
       - name: Deploy on server
         uses: appleboy/ssh-action@master
         with:
@@ -32,5 +30,5 @@ jobs:
           key: ${{ secrets.KEY }}
           port: ${{ secrets.SERVER_PORT }}
           script: |
-            cd /home/ubuntu/platform-ai
+            cd /home/ubuntu/platform
             sudo sh deploy.sh
