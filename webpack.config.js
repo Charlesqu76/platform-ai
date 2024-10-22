@@ -23,6 +23,6 @@ module.exports = {
     path: path.resolve(__dirname, "dist"),
   },
   plugins: [new NodemonPlugin()],
-  mode: "development",
-  watch: true,
+  mode: "production",
+  watch: false,
 };
