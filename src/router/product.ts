@@ -17,7 +17,11 @@ productsRouter.get("/recommend", async (req: Request, res: Response) => {
 productsRouter.get("/summary", async (req: Request, res: Response) => {
   try {
     const { id } = req.query;
-    if (!id) res.status(500).json({ error: "Failed to generate response" });
+    if (!id) {
+      res.status(500).json({ error: "Failed to generate response" });
+      return;
+    }
+
     const response = await productAi.summary(id as string);
     res.json(response);
   } catch (error) {

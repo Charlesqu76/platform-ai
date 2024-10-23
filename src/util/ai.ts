@@ -4,16 +4,22 @@ import dotenv from "dotenv";
 dotenv.config();
 
 export default class AI {
-  model: ChatOpenAI | undefined;
+  model: OpenAI;
+  llmModel: ChatOpenAI;
   constructor() {
     if (!process.env.OPENAI_API_KEY) {
       throw Error("openai api key is required");
     }
-    const model = new ChatOpenAI({
-      model: "gpt-3.5-turbo",
+    this.model = new OpenAI({
+      model: "gpt-4o-mini",
       temperature: 0,
       openAIApiKey: process.env.OPENAI_API_KEY,
     });
-    this.model = model;
+
+    this.llmModel = new ChatOpenAI({
+      model: "gpt-4o-mini",
+      temperature: 0,
+      openAIApiKey: process.env.OPENAI_API_KEY,
+    });
   }
 }

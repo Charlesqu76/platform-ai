@@ -1,33 +1,15 @@
-import { PoolClient } from "pg";
-import { HumanMessage, SystemMessage } from "@langchain/core/messages";
-import client from "../database";
 import AI from "./ai";
-import { Document } from "langchain/document";
-import { pull } from "langchain/hub";
 import {
   StringOutputParser,
   StructuredOutputParser,
 } from "@langchain/core/output_parsers";
 import { PromptTemplate } from "@langchain/core/prompts";
-import { createStuffDocumentsChain } from "langchain/chains/combine_documents";
-import { MemoryVectorStore } from "langchain/vectorstores/memory";
-import { OpenAIEmbeddings } from "@langchain/openai";
-import {
-  JSONLinesLoader,
-  JSONLoader,
-} from "langchain/document_loaders/fs/json";
-import {
-  RunnablePassthrough,
-  RunnableSequence,
-} from "@langchain/core/runnables";
-import { formatDocumentsAsString } from "langchain/util/document";
 import { z } from "zod";
 import { sql } from "../sql";
 
 export class ProductAI extends AI {
   constructor() {
     super();
-    if (!this.model) return;
   }
 
   recommend = async (query: string | null, userId: number | null) => {
