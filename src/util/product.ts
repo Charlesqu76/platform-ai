@@ -26,7 +26,9 @@ export class ProductAI extends AI {
     }, {});
 
     const prompt = PromptTemplate.fromTemplate(`
-      Recommend products that are {products} based on user preferences if provide and user query if provide.
+      Recommend products that are {products} based on user preferences if provide and user query if provide and return ids.
+      if there isn't query and preferences, orderd the product's ids according to ratings
+      just return ids,
       formart template: {format} 
       here are the user query: {query}
       user preferences: {preferences}

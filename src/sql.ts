@@ -75,7 +75,7 @@ class Client {
   queryProducts = async () => {
     return (
       await this.clinet.query(`
-      SELECT p.*, CAST(AVG(pur.rate) AS FLOAT) AS ratings
+      SELECT p.name, p.id, p.price, CAST(AVG(pur.rate) AS FLOAT) AS ratings
                   FROM product AS p
                   LEFT OUTER JOIN purchase AS pur ON (p.id = pur.product)
                   GROUP BY p.id`)
