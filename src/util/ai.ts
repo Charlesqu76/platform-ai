@@ -20,6 +20,7 @@ export default class AI {
       model: "gpt-4o-mini",
       temperature: 0,
       openAIApiKey: process.env.OPENAI_API_KEY,
+      streaming: true,
     });
   }
 }

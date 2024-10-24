@@ -18,42 +18,6 @@ router.get("/aisearch", async (req: Request, res: Response) => {
   }
 });
 
-router.get("/predict", async (req: Request, res: Response) => {
-  try {
-    const { id } = req.query;
-    if (!id) {
-      res.status(500).json({ error: "Failed to generate response" });
-      return;
-    }
-    const chunks = await retailerAI.predict(id);
-    for await (const chunk of chunks) {
-      res.write(chunk);
-    }
-    res.end();
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Failed to generate response" });
-  }
-});
-
-router.get("/generate", async (req: Request, res: Response) => {
-  try {
-    const { id } = req.query;
-    if (!id) {
-      res.status(500).json({ error: "Failed to generate response" });
-      return;
-    }
-    const stream = await retailerAI.generate(id);
-    for await (const chunk of stream) {
-      res.write(chunk);
-    }
-    res.send();
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Failed to generate response" });
-  }
-});
-
 router.get("/normal", async (req: Request, res: Response) => {
   try {
     const { id, question } = req.query;

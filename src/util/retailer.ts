@@ -19,7 +19,7 @@ class RetailerAi extends AI {
 
   aisearch = async (name) => {
     const searchTool = new TavilySearchResults({
-      maxResults: 2,
+      maxResults: 3,
     });
     const tools = [searchTool];
 
@@ -31,26 +31,22 @@ class RetailerAi extends AI {
       })
     );
 
-    const agent = createReactAgent({ llm: this.llmModel, tools });
-
-    const agentFinalState = await agent.invoke({
-      messages: `you are an analyiist and hired by a product retailer, 
+    const text = `you are an analyiist and hired by a product retailer, 
         and will search the product name on the internet such as e-bay, amazon, and other ecommerce-platform, 
         format template: ${parser.getFormatInstructions()}
         product name: ${name} ,
-        `,
+        `;
+
+    const agent = createReactAgent({
+      llm: this.llmModel,
+      tools,
     });
 
-    const cnt =
-      agentFinalState.messages[agentFinalState.messages.length - 1].content;
+    const { messages } = await agent.invoke({ messages: text });
 
-    if (cnt.startsWith("```json")) {
-      try {
-        const c = cnt.replace("json", "").replace("```", "").replace("```", "");
-        return JSON.parse(c);
-      } catch (e) {}
-    }
-    return { content: cnt };
+    const { content } = messages.slice(-1)[0];
+
+    return await parser.parse(content);
   };
 
   predict = async (id) => {
@@ -158,6 +154,7 @@ class RetailerAi extends AI {
         predicts: z.array(z.object({ date: z.string(), value: z.number() })),
       })
     ).getFormatInstructions();
+
     const stream = chain.stream({
       history: historyText,
       sales: JSON.stringify(sales),
