@@ -112,7 +112,9 @@ class RetailerAi extends AI {
     const history = new UpstashRedisChatMessageHistory({
       sessionId: chatId || "t",
       config: {
-        url: process.env.RRDIS_URL,
+        // @ts-ignore
+        url: process.env.REDIS_URL,
+        // @ts-ignore
         token: process.env.REDIS_TOKEN,
       },
     });
