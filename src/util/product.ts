@@ -6,13 +6,42 @@ import {
 import { PromptTemplate } from "@langchain/core/prompts";
 import { z } from "zod";
 import { sql } from "../sql";
+import OpenAI from "openai";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 export class ProductAI extends AI {
   constructor() {
     super();
   }
 
-  recommend = async (query: string | null, userId: number | null) => {
+  recommend = async (query: string, userId: number | null, file: string) => {
+    const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+    let fileDescription = "";
+    if (file) {
+      try {
+        const res = await client.chat.completions.create({
+          model: "gpt-4o-mini",
+          messages: [
+            {
+              role: "user",
+              content: [
+                { type: "text", text: "What’s in this image?" },
+                {
+                  type: "image_url",
+                  image_url: {
+                    url: "https://letsenhance.io/static/8f5e523ee6b2479e26ecc91b9c25261e/1015f/MainAfter.jpg",
+                  },
+                },
+              ],
+            },
+          ],
+        });
+        fileDescription = res.choices[0].message.content;
+      } catch {}
+    }
+
     let res;
     if (userId) {
       res = await Promise.all([sql.queryProducts(), sql.queryUserRecord()]);
@@ -40,7 +69,7 @@ export class ProductAI extends AI {
 
     const response = await chain.invoke({
       products: JSON.stringify(products),
-      query: query,
+      query: query || fileDescription,
       preferences: JSON.stringify(preferences),
       format: parser.getFormatInstructions(),
     });
@@ -70,6 +99,13 @@ export class ProductAI extends AI {
     return {
       summary: response,
     };
+  };
+
+  describe = async () => {
+    const res = await this.llmModel.invoke(
+      `describe the image url is: https://images.ctfassets.net/hrltx12pl8hq/28ECAQiPJZ78hxatLTa7Ts/2f695d869736ae3b0de3e56ceaca3958/free-nature-images.jpg?fit=fill&w=1200&h=630`
+    );
+    console.log(res);
   };
 }
 

@@ -1,5 +1,5 @@
 import AI from "./ai";
-import { ChatPromptTemplate, PromptTemplate } from "@langchain/core/prompts";
+import { PromptTemplate } from "@langchain/core/prompts";
 import {
   StringOutputParser,
   StructuredOutputParser,

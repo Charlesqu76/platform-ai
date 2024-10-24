@@ -10,17 +10,13 @@ export default class AI {
     if (!process.env.OPENAI_API_KEY) {
       throw Error("openai api key is required");
     }
-    this.model = new OpenAI({
+    const config = {
       model: "gpt-4o-mini",
       temperature: 0,
       openAIApiKey: process.env.OPENAI_API_KEY,
-    });
+    };
+    this.model = new OpenAI(config);
 
-    this.llmModel = new ChatOpenAI({
-      model: "gpt-4o-mini",
-      temperature: 0,
-      openAIApiKey: process.env.OPENAI_API_KEY,
-      streaming: true,
-    });
+    this.llmModel = new ChatOpenAI(config);
   }
 }

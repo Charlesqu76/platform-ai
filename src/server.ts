@@ -10,11 +10,9 @@ const app = express();
 
 const allowedOrigins = ["http://127.0.0.1:3000", "http://localhost:3000"];
 
-// CORS configuration with credentials support
 app.use(
   cors({
     origin: function (origin, callback) {
-      // Check if origin is in allowedOrigins
       if (!origin || allowedOrigins.indexOf(origin) !== -1) {
         callback(null, origin);
       } else {
