@@ -104,7 +104,7 @@ class RetailerAi extends AI {
     return stream;
   };
 
-  normal = async (id, question, res: any) => {
+  normal = async (id, question: string, res: any) => {
     const [sales, view] = await Promise.all([
       sql.getData(id),
       sql.getViewData(id),
@@ -123,35 +123,47 @@ class RetailerAi extends AI {
       chatHistory: history,
     });
 
+    // @ts-ignore
+    const historyText = await memory.loadMemoryVariables();
+
     memory.chatHistory.addUserMessage(question);
+
+    let prompt = PromptTemplate.fromTemplate(
+      `system: You are an data analysist hired by a product retailer, you need to analyze the users' sales data and user's view data and ansert the retailer's question  
+      sales data: {sales} 
+      views data: {view} 
+      "history", {history} `
+    );
+    if (question.includes("predict")) {
+      prompt = PromptTemplate.fromTemplate(`
+        Given the historical sales data, predict the sales.
+        format template: {format},
+        {question}
+     `);
+    }
+    if (question.includes("portrait")) {
+      prompt = PromptTemplate.fromTemplate(`
+        Analyze the dataset with fields including name (user's name), time (time of action), geo (user's geographic location), device (type of device used), and gender (user's gender), 
+        with the analysis goals of identifying trends in user behavior (viewing and purchasing actions), understanding how geographic location and device types influence actions, examining gender's impact on viewing or purchasing,
+         generating a user portrait summarizing typical behavior and preferences, and providing suggestions for improving engagement and conversion rates.     
+      {question}
+        `);
+    } else {
+    }
+
+    const chain = RunnableSequence.from([prompt, this.model]);
+
     const parser = StructuredOutputParser.fromZodSchema(
       z.object({
         predicts: z.array(z.object({ date: z.string(), value: z.number() })),
       })
     ).getFormatInstructions();
-
-    const prompt = ChatPromptTemplate.fromTemplate(
-      `You are an data analysist hired by a product retailer, you need to analyze the users' sales data and user's view data and ansert the retailer's question 
-      if the quesiton is about the users' portrait: generating a user portrait summarizing typical behavior and preferences, and providing suggestions for improving engagement and conversion rates.
-      if the question is about the preduct the sales, return the json data and the format is {predict}
-      else return the text
-      sales data: {sales},
-      views data: {view},
-      history: {history}
-      user: {question}`
-    );
-
-    // @ts-ignore
-    const historyText = await memory.loadMemoryVariables();
-
-    const chain = RunnableSequence.from([prompt, this.model]);
-
     const stream = chain.stream({
-      question,
       history: historyText,
       sales: JSON.stringify(sales),
       view: JSON.stringify(view),
       predict: parser,
+      question,
     });
 
     let text = "";

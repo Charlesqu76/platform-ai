@@ -61,7 +61,7 @@ router.get("/normal", async (req: Request, res: Response) => {
       res.status(500).json({ error: "Failed to generate response" });
       return;
     }
-    await retailerAI.normal(id, question, res);
+    await retailerAI.normal(id, question as string, res);
     res.send();
   } catch (e) {
     console.log(e);
