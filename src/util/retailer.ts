@@ -11,6 +11,9 @@ import { sql } from "../sql";
 import { BufferMemory } from "langchain/memory";
 import { UpstashRedisChatMessageHistory } from "@langchain/community/stores/message/upstash_redis";
 import { RunnableSequence } from "@langchain/core/runnables";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 class RetailerAi extends AI {
   constructor() {
@@ -100,17 +103,17 @@ class RetailerAi extends AI {
     return stream;
   };
 
-  normal = async (id, question: string, res: any) => {
+  normal = async (id, question: string, chatId: string, res: any) => {
     const [sales, view] = await Promise.all([
       sql.getData(id),
       sql.getViewData(id),
     ]);
 
     const history = new UpstashRedisChatMessageHistory({
-      sessionId: "test",
+      sessionId: chatId || "t",
       config: {
-        url: "https://tolerant-finch-44544.upstash.io",
-        token: "Aa4AAAIjcDE1MjZmODZhOGFkNGE0Mjk0OWMzYWY5MDI3YTg0ZWVkNHAxMA",
+        url: process.env.RRDIS_URL,
+        token: process.env.REDIS_TOKEN,
       },
     });
 

@@ -20,12 +20,12 @@ router.get("/aisearch", async (req: Request, res: Response) => {
 
 router.get("/normal", async (req: Request, res: Response) => {
   try {
-    const { id, question } = req.query;
+    const { id, question, chatId } = req.query;
     if (!id) {
       res.status(500).json({ error: "Failed to generate response" });
       return;
     }
-    await retailerAI.normal(id, question as string, res);
+    await retailerAI.normal(id, question as string, chatId as string, res);
     res.send();
   } catch (e) {
     console.log(e);
